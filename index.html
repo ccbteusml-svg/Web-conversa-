@@ -110,29 +110,28 @@
 
 
         function enviarMensagem() {
-            const input = document.getElementById('msgInput');
-            const texto = input.value;
-            if (texto.trim() !== "" && socket.readyState === WebSocket.OPEN) {
-                const msgObj = { 
-                    texto: texto, 
-                    de: localStorage.getItem('nomeUsuario') 
-                };
-                socket.send(JSON.stringify(msgObj));
-                exibirMensagem(texto, 'me');
-                input.value = '';
-                input.focus();
-            }
-        }
+    const input = document.getElementById('msgInput');
+    const texto = input.value;
+    
+    if (texto.trim() !== "" && socket && socket.readyState === WebSocket.OPEN) {
+        const msgObj = { 
+            texto: texto, 
+            de: localStorage.getItem('nomeUsuario') 
+        };
+        
+        // Envia para o servidor
+        socket.send(JSON.stringify(msgObj));
+        
+        // Mostra na sua tela IMEDIATAMENTE (sem esperar o servidor)
+        exibirMensagem(texto, 'me');
+        
+        input.value = '';
+        input.focus();
+    } else {
+        console.log("Socket não está aberto ou campo vazio");
+    }
+}
 
-        function exibirMensagem(texto, tipo) {
-            const container = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = 'msg ' + tipo;
-            div.innerText = texto;
-            container.appendChild(div);
-            // Rola o chat para a última mensagem
-            container.scrollTop = container.scrollHeight;
-        }
     </script>
 </body>
 </html>
