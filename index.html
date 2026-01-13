@@ -86,19 +86,20 @@
         }
 
         function conectarSocket() {
-    // AQUI ESTAVA O ERRO: Use o link que o comando SSH te deu no Termux
-    // Lembre-se de usar 'wss://' no início
-    const meuLinkDoServeo = 'wss://4c25d2efe98386cd-200-164-254-127.serveousercontent.com'; 
+    // Afunction conectarSocket() {
+    // COLOQUE AQUI O LINK QUE APARECE NO SEU TERMUX
+    // Troque 'https://' por 'wss://' para funcionar com segurança
+    const linkDoSeuTermux = 'wss://4c25d2efe98386cd-200-164-254-127.serveousercontent.com'; 
     
-    socket = new WebSocket(meuLinkDoServeo);
+    socket = new WebSocket(linkDoSeuTermux);
 
     socket.onopen = () => {
-        console.log("CONECTADO AO SERVIDOR COM SUCESSO!");
+        console.log("CONECTADO COM SUCESSO!");
     };
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        // Só exibe se a mensagem vier de OUTRA pessoa
+        // Exibe a mensagem se vier de outro usuário
         if (data.de !== localStorage.getItem('nomeUsuario')) {
             exibirMensagem(data.texto, 'outros');
         }
@@ -109,6 +110,7 @@
         alert("A conexão caiu! Verifique se o comando 'ssh' ainda está rodando no Termux.");
     };
 }
+
 
         function enviarMensagem() {
     const input = document.getElementById('msgInput');
