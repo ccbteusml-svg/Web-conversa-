@@ -7,26 +7,10 @@
     <title>M-Chat</title>
     <style>
         body { font-family: sans-serif; margin: 0; background: #075E54; color: white; }
-        
-        /* Tela de Login */
-        #login-screen { 
-            display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; height: 100vh; padding: 20px;
-        }
-        .login-box {
-            background: white; padding: 30px; border-radius: 15px;
-            display: flex; flex-direction: column; width: 80%; max-width: 300px;
-        }
-        .login-box input {
-            margin-bottom: 15px; padding: 12px; border: 1px solid #ccc;
-            border-radius: 8px; color: #333; font-size: 16px;
-        }
-        .login-box button {
-            background: #128C7E; color: white; border: none;
-            padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;
-        }
-
-        /* Tela de Chat */
+        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
+        .login-box { background: white; padding: 30px; border-radius: 15px; display: flex; flex-direction: column; width: 80%; max-width: 300px; }
+        .login-box input { margin-bottom: 15px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; color: #333; font-size: 16px; }
+        .login-box button { background: #128C7E; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         #chat-screen { display: none; flex-direction: column; height: 100vh; background: #e5ddd5; }
         .header { background: #075E54; color: white; padding: 15px; font-weight: bold; text-align: center; }
         #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; }
@@ -34,12 +18,11 @@
         .msg.me { align-self: flex-end; background: #dcf8c6; }
         .msg.outros { align-self: flex-start; background: white; }
         .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; }
-        .input-area input { flex: 1; padding: 12px; border-radius: 20px; border: none; outline: none; font-size: 16px; }
+        .input-area input { flex: 1; padding: 12px; border-radius: 20px; border: none; outline: none; font-size: 16px; color: #333; }
         .input-area button { background: #075E54; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; margin-left: 10px; font-weight: bold; font-size: 20px; }
     </style>
 </head>
 <body>
-
     <div id="login-screen">
         <div style="font-size: 80px; margin-bottom: 20px; font-weight: bold;">M</div>
         <div class="login-box">
@@ -60,6 +43,70 @@
 
     <script>
         let socket;
+
+        window.onload = () => {
+            if (localStorage.getItem('logado') === 'true') { mostrarChat(); }
+        };
+
+        function fazerLogin() {
+            const user = document.getElementById('username').value;
+            if (user.trim() !== "") {
+                localStorage.setItem('logado', 'true');
+                localStorage.setItem('nomeUsuario', user);
+                mostrarChat();
+            } else { alert("Por favor, digite seu nome."); }
+        }
+
+        function mostrarChat() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
+            conectarSocket();
+        }
+
+        function conectarSocket() {
+            // ATENÇÃO: Verifique o link verde no seu Termux (Imagem 1000141815)
+            // O link mudou para: bac1cca2e5418966...
+            const linkTermux = 'wss://bac1cca2e5418966-200-164-254-127.serveousercontent.com'; 
+            
+            socket = new WebSocket(linkTermux);
+
+            socket.onopen = () => { console.log("CONECTADO!"); };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.de !== localStorage.getItem('nomeUsuario')) {
+                    exibirMensagem(data.texto, 'outros');
+                }
+            };
+
+            socket.onerror = (error) => {
+                alert("A conexão caiu! Verifique se o túnel SSH no Termux ainda está rodando.");
+            };
+        }
+
+        function enviarMensagem() {
+            const input = document.getElementById('msgInput');
+            const texto = input.value;
+            if (texto.trim() !== "" && socket && socket.readyState === WebSocket.OPEN) {
+                const msgObj = { texto: texto, de: localStorage.getItem('nomeUsuario') };
+                socket.send(JSON.stringify(msgObj));
+                exibirMensagem(texto, 'me');
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        function exibirMensagem(texto, tipo) {
+            const container = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'msg ' + tipo;
+            div.innerText = texto;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+</body>
+</html>
 
         // Ao abrir a página, verifica se já está logado
         window.onload = () => {
